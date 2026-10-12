@@ -2,16 +2,20 @@
 
 Minimalist, dark, hold-to-log habit tracker. Expo (TypeScript) · Zustand · Reanimated · expo-haptics · Firebase · AdMob.
 
-## Run
+## Run on an Android phone
+Expo Go can't be used: this app needs a custom development build (AdMob is a native module that Expo Go doesn't include, and Expo Go only supports one SDK at a time).
+
 ```bash
-cp .env.example .env   # optional: Firebase + AdMob ids
 npm install
-npx expo prebuild      # AdMob needs a dev build; Expo Go won't load it
-npm run android        # or ios
-npm test               # streak, merge and store/persistence tests
-npm run typecheck
-npm run lint
+npm install -g eas-cli && eas login          # free Expo account
+eas build --profile development --platform android   # cloud build, no Android Studio needed
+# open the build's install link/QR on your phone, install the APK
+npx expo start --dev-client                  # then open the "Streaks" app and connect
 ```
+If the phone and computer aren't on the same Wi-Fi: `npx expo start --dev-client --tunnel`.
+Optional: copy `.env.example` to `.env` for Firebase/AdMob ids (the app runs fully offline without them, with Google test ads).
+
+Checks: `npm test`, `npm run typecheck`, `npm run lint`.
 
 ## What's in the PRD and where
 | PRD | Code |
