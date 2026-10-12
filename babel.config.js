@@ -1,7 +1,5 @@
 module.exports = function (api) {
   api.cache(true);
-  return {
-    presets: ['babel-preset-expo'],
-    plugins: ['react-native-reanimated/plugin'], // must stay last
-  };
+  // babel-preset-expo applies the Reanimated/worklets transform itself; no manual plugin.
+  return { presets: ['babel-preset-expo'] };
 };
