@@ -8,7 +8,11 @@ export function ProgressRing({ value, accent, size = 180 }: { value: number; acc
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+    <View
+      accessible
+      accessibilityLabel={`Total consistency ${Math.round(value * 100)} percent`}
+      style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}
+    >
       <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
         <Circle cx={size / 2} cy={size / 2} r={r} stroke={colors.dim} strokeWidth={stroke} fill="none" />
         <Circle

@@ -3,10 +3,10 @@ import { StyleSheet, View } from 'react-native';
 import { colors } from '../theme';
 import { heatmapWeeks } from '../lib/streak';
 
-export function Heatmap({ logs, accent }: { logs: string[]; accent: string }) {
+export function Heatmap({ logs, accent, today }: { logs: string[]; accent: string; today?: string }) {
   return (
-    <View style={styles.grid}>
-      {heatmapWeeks(logs, 14).map((week, i) => (
+    <View style={styles.grid} accessible accessibilityLabel={`Activity heatmap, ${new Set(logs).size} days completed`}>
+      {heatmapWeeks(logs, 14, today).map((week, i) => (
         <View key={i} style={styles.week}>
           {week.map((c) => (
             <View

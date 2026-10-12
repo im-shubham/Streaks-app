@@ -28,6 +28,13 @@ export const diffDays = (a: string, b: string): number => {
   );
 };
 
+/** Logs dated after `today` (clock skew, travel) never count toward stats. */
+const upTo = (logs: string[], today: string) => logs.filter((l) => l <= today);
+
+/** Distinct logged days up to today. */
+export const totalDays = (logs: string[], today: string = dayKey()): number =>
+  new Set(upTo(logs, today)).size;
+
 /** Current streak. Today not being logged yet doesn't break a streak ending yesterday. */
 export function currentStreak(logs: string[], today: string = dayKey()): number {
   const set = new Set(logs);
@@ -40,8 +47,8 @@ export function currentStreak(logs: string[], today: string = dayKey()): number 
   return n;
 }
 
-export function bestStreak(logs: string[]): number {
-  const days = [...new Set(logs)].sort();
+export function bestStreak(logs: string[], today: string = dayKey()): number {
+  const days = [...new Set(upTo(logs, today))].sort();
   let best = 0;
   let run = 0;
   days.forEach((d, i) => {
@@ -53,10 +60,11 @@ export function bestStreak(logs: string[]): number {
 
 /** Share of days since the first log (inclusive of today) that were logged, 0..1. */
 export function successRate(logs: string[], today: string = dayKey()): number {
-  if (logs.length === 0) return 0;
-  const first = [...logs].sort()[0];
+  const days = upTo(logs, today);
+  if (days.length === 0) return 0;
+  const first = [...days].sort()[0];
   const span = diffDays(first, today) + 1;
-  return Math.min(1, new Set(logs).size / Math.max(1, span));
+  return Math.min(1, new Set(days).size / Math.max(1, span));
 }
 
 /** The last 7 days ending today, oldest first. */

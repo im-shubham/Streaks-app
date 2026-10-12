@@ -4,24 +4,25 @@ import { ProgressRing } from '../components/ProgressRing';
 import { Heatmap } from '../components/Heatmap';
 import { NativeAdCard } from '../components/NativeAdCard';
 import { THEMES, ThemeName, colors } from '../theme';
-import { bestStreak, currentStreak, successRate } from '../lib/streak';
+import { bestStreak, currentStreak, successRate, totalDays } from '../lib/streak';
 import type { Habit } from '../store/useStore';
 
 interface Props {
   habit: Habit;
   accent: string;
+  today: string;
   isPro: boolean;
   theme: ThemeName;
   onTheme: (t: ThemeName) => void;
   onUpsell: () => void;
 }
 
-export function Dashboard({ habit, accent, isPro, theme, onTheme, onUpsell }: Props) {
-  const rate = successRate(habit.logs);
+export function Dashboard({ habit, accent, today, isPro, theme, onTheme, onUpsell }: Props) {
+  const rate = successRate(habit.logs, today);
   const stats = [
-    { k: 'Current', v: `${currentStreak(habit.logs)}d` },
-    { k: 'Best', v: `${bestStreak(habit.logs)}d` },
-    { k: 'Total days', v: `${new Set(habit.logs).size}` },
+    { k: 'Current', v: `${currentStreak(habit.logs, today)}d` },
+    { k: 'Best', v: `${bestStreak(habit.logs, today)}d` },
+    { k: 'Total days', v: `${totalDays(habit.logs, today)}` },
     { k: 'Success rate', v: `${Math.round(rate * 100)}%` },
   ];
   return (
@@ -38,7 +39,7 @@ export function Dashboard({ habit, accent, isPro, theme, onTheme, onUpsell }: Pr
         ))}
       </View>
       <Text style={styles.h}>LAST 14 WEEKS</Text>
-      <Heatmap logs={habit.logs} accent={accent} />
+      <Heatmap logs={habit.logs} accent={accent} today={today} />
       <Text style={styles.h}>THEME</Text>
       <View style={styles.themes}>
         {(Object.keys(THEMES) as ThemeName[]).map((t) => {

@@ -5,10 +5,11 @@ import { lastSevenDays } from '../lib/streak';
 
 const L = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
-export function DotTracker({ logs, accent }: { logs: string[]; accent: string }) {
+export function DotTracker({ logs, accent, today }: { logs: string[]; accent: string; today?: string }) {
+  const days = lastSevenDays(logs, today);
   return (
-    <View style={styles.row}>
-      {lastSevenDays(logs).map((d) => {
+    <View style={styles.row} accessible accessibilityLabel={`${days.filter((d) => d.done).length} of the last 7 days completed`}>
+      {days.map((d) => {
         const [y, m, day] = d.key.split('-').map(Number);
         return (
           <View key={d.key} style={styles.col}>

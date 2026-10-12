@@ -1,32 +1,45 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import {
-  NativeAd,
-  NativeAdView,
-  NativeAsset,
-  NativeAssetType,
-  TestIds,
-} from 'react-native-google-mobile-ads';
 import { colors } from '../theme';
 
-const UNIT_ID = process.env.EXPO_PUBLIC_ADMOB_NATIVE_ID || TestIds.NATIVE;
+// The AdMob native module doesn't exist in Expo Go, and importing the package there throws.
+// Load it lazily so the app still runs (without ads) instead of crashing at startup.
+type AdsModule = typeof import('react-native-google-mobile-ads');
+let Ads: AdsModule | null = null;
+try {
+  Ads = require('react-native-google-mobile-ads');
+} catch {
+  Ads = null;
+}
+type NativeAdT = import('react-native-google-mobile-ads').NativeAd;
+let initialized: Promise<unknown> | null = null;
 
 /** Native Advanced ad, restyled to the dark/neon UI. Interstitials are intentionally never used. */
 export function NativeAdCard({ accent }: { accent: string }) {
-  const [ad, setAd] = useState<NativeAd | null>(null);
+  const [ad, setAd] = useState<NativeAdT | null>(null);
 
   useEffect(() => {
-    let current: NativeAd | null = null;
-    NativeAd.createForAdRequest(UNIT_ID)
+    if (!Ads) return;
+    let cancelled = false;
+    let current: NativeAdT | null = null;
+    const unitId = process.env.EXPO_PUBLIC_ADMOB_NATIVE_ID || Ads.TestIds.NATIVE;
+    initialized ??= Ads.default().initialize();
+    initialized
+      .then(() => Ads!.NativeAd.createForAdRequest(unitId))
       .then((a) => {
+        if (cancelled) return a.destroy();
         current = a;
         setAd(a);
       })
-      .catch(() => {}); // no fill / offline: render nothing
-    return () => current?.destroy();
+      .catch(() => {}); // no fill / offline / init failure: render nothing
+    return () => {
+      cancelled = true;
+      current?.destroy();
+    };
   }, []);
 
-  if (!ad) return null;
+  if (!Ads || !ad) return null;
+  const { NativeAdView, NativeAsset, NativeAssetType } = Ads;
   return (
     <NativeAdView nativeAd={ad} style={styles.card}>
       <Text style={[styles.badge, { color: accent, borderColor: accent }]}>AD</Text>

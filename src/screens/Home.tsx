@@ -4,20 +4,21 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { HoldButton } from '../components/HoldButton';
 import { DotTracker } from '../components/DotTracker';
 import { colors } from '../theme';
-import { currentStreak, dayKey } from '../lib/streak';
+import { currentStreak } from '../lib/streak';
 import type { Habit } from '../store/useStore';
 
 interface Props {
   habit: Habit;
   accent: string;
   accent2: string;
+  today: string;
   onLog: () => void;
   onAdd: () => void;
 }
 
-export function Home({ habit, accent, accent2, onLog, onAdd }: Props) {
-  const doneToday = habit.logs.includes(dayKey());
-  const streak = currentStreak(habit.logs);
+export function Home({ habit, accent, accent2, today, onLog, onAdd }: Props) {
+  const doneToday = habit.logs.includes(today);
+  const streak = currentStreak(habit.logs, today);
   return (
     <View style={styles.wrap}>
       <View style={styles.top}>
@@ -32,7 +33,7 @@ export function Home({ habit, accent, accent2, onLog, onAdd }: Props) {
             <Text style={styles.streak}>🔥 {streak}</Text>
             <Text style={[styles.days, { color: accent }]}>{streak === 1 ? 'DAY' : 'DAYS'}</Text>
             <Animated.View entering={FadeInDown.delay(300)} style={{ marginTop: 48 }}>
-              <DotTracker logs={habit.logs} accent={accent} />
+              <DotTracker logs={habit.logs} accent={accent} today={today} />
             </Animated.View>
           </Animated.View>
         ) : (

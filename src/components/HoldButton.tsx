@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
@@ -34,10 +34,14 @@ export function HoldButton({ label, accent, accent2, onComplete }: Props) {
   const done = useSharedValue(false);
   const pulse = useSharedValue(1);
 
+  // The reaction worklet captures the first render's closure; read the latest callback via ref.
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+
   const tick = () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
   const success = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-    onComplete();
+    onCompleteRef.current();
   };
 
   useAnimatedReaction(
@@ -72,6 +76,11 @@ export function HoldButton({ label, accent, accent2, onComplete }: Props) {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`Hold to log ${label}`}
+      accessibilityHint="Press and hold for two seconds. With a screen reader, double tap to log."
+      accessibilityActions={[{ name: 'activate', label: `Log ${label}` }]}
+      onAccessibilityAction={(e) => {
+        if (e.nativeEvent.actionName === 'activate' && !done.value) p.value = withTiming(1, { duration: 250 });
+      }}
       onPressIn={() => {
         done.value = false;
         p.value = withTiming(1, { duration: HOLD_MS * (1 - p.value), easing: Easing.inOut(Easing.quad) });

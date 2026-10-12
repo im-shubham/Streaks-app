@@ -8,8 +8,9 @@ cp .env.example .env   # optional: Firebase + AdMob ids
 npm install
 npx expo prebuild      # AdMob needs a dev build; Expo Go won't load it
 npm run android        # or ios
-npm test               # streak logic
+npm test               # streak, merge and store/persistence tests
 npm run typecheck
+npm run lint
 ```
 
 ## What's in the PRD and where
@@ -23,10 +24,14 @@ npm run typecheck
 | ₹49 / ₹199 anchors, ₹399 lifetime | `src/lib/purchases.ts`, `screens/Paywall.tsx` |
 | Pro: no ads, unlimited habits, neon themes | `useStore.isPro`, `theme.ts` |
 
+## Sync model
+Device storage (Zustand + AsyncStorage) is the source of truth and works fully offline. Firestore mirrors habits in the background: pushes use per-habit map fields with `arrayUnion`, remote data is union-merged into local, so neither side can erase the other's history. `isPro` is never synced. Deploy `firestore.rules` with your Firebase project (not yet tested against the emulator).
+
 ## Deliberate deviations / still open
-- **Animation:** the fill-rising disc is pure Reanimated (60 FPS, no asset needed). The inverted-sandglass Lottie/Rive file isn't included; swap it into `HoldButton` and drive its progress from the `p` shared value.
-- **Offline:** the Firestore JS SDK has no persistent cache on React Native, so on-device persistence is Zustand + AsyncStorage (always works offline); Firestore mirrors it in the background via anonymous auth (`src/lib/firebase.ts`).
-- **Payments are a stub** (`purchase()` only succeeds in `__DEV__`). Wire Play Billing (supports UPI) or Razorpay and verify receipts server-side before setting `isPro`; locally-set `isPro` is trivially spoofable.
-- **Pro extras not built:** custom app icons and home-screen widgets need native work (alternate icons, WidgetKit/App Widgets).
-- Ads use Google's test ids until `EXPO_PUBLIC_ADMOB_NATIVE_ID` and real app ids in `app.json` are set. No interstitials anywhere.
-- Not run on a device/emulator in this environment; only typecheck and the streak unit tests were run.
+- **Animation:** the fill-rising disc is pure Reanimated. No Lottie/Rive sandglass asset yet.
+- **Payments are a stub** (`purchase()` only succeeds in `__DEV__`). `isPro` is stored locally and is spoofable until server-verified purchases exist.
+- **Pro extras not built:** custom app icons and home-screen widgets.
+- Ads use Google's test ids until real ids are set; no consent/ATT flow yet. Ads silently don't render in Expo Go (native module absent); use a dev build.
+- Anonymous Firebase accounts are lost on reinstall (cloud copy orphaned) until real sign-in is added.
+- No habit-switcher screen yet (Pro users can add habits but only the newest is shown).
+- Never run on a device/emulator in CI-less sessions: verified by typecheck, lint, unit tests and an Android Metro/Hermes bundle only.
